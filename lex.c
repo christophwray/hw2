@@ -31,15 +31,16 @@ Due Date: See Webcourses
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct {
-    char *lexeme;
+    char lexeme[100];
     int token;
     int index;
 } Token;
 
 typedef struct {
-    char *name;
+    char name[100];
     int line;
     int column;
 } Name;
@@ -54,6 +55,8 @@ static void addToken(char lexeme[], int token, int index) {
     strcpy(tokens[tokenCount].lexeme, lexeme);
     tokens[tokenCount].token = token;
     tokens[tokenCount].index = index;
+
+    tokenCount++;
 }
 
 
@@ -127,26 +130,120 @@ static void printError(int errorNum, int lineNum, int col) {
     }
 }
 
+void printResults() {
+    printf("\nLexeme Table:\n\nlexeme \t\ttoken");
+
+    for(int i = 0; i < tokenCount; i++) {
+        printf("%s\t%d\n", tokens[i].lexeme, tokens[i].token);
+
+        if(tokens[i].token == 1) {
+            printf(" %d", tokens[i].index);
+        }
+
+        else if(tokens[i].token == 2) {
+            printf(" %s", tokens[i].lexeme);
+        }
+    }
+
+    printf("\nName Table:\n\nindex  name\t\tline\tcolumn\n");
+
+    for(int i = 0; i < nameCount; i++) {
+        printf("%d\t%s\t\t%d\t%d", i, names[i].name, names[i].line, names[i].column);
+    }
+
+    printf("\n\nToken List:\n\n");
+    
+    for(int i = 0; i < tokenCount; i++) {
+        printf("%d", tokens[i].token);
+    }
+}
+
+void writeTokens() {
+    FILE* fp = fopen("tokens.txt", "w");
+
+    if(fp == NULL) {
+        return;
+    }
+
+    for(int i = 0; i < tokenCount; i++) {
+        fprintf(fp, "%d", tokens[i].token);
+
+        if(tokens[i].token == 1) {
+            fprintf(fp, " %d", tokens[i].index);
+        }
+
+        else if(tokens[i].token == 2) {
+            fprintf(fp, " %s", tokens[i].lexeme);
+        }
+        printf("\n");
+    }
+    fclose(fp);
+}
+
+void writeNames() {
+    FILE* fp = fopen("nametable.txt", "w");
+
+    if(fp == NULL) {
+        return;
+    }
+
+    for(int i = 0; i < nameCount; i++) {
+        fprintf(fp, "%d %s %d %d\n", i, names[i].name, names[i].line, names[i].column);
+    }
+    fclose(fp);
+}
 
 
-int main (int argc, char *argv[])
-{
-  if (argc != 2)
-  {
-  printf("\nUsage: ./vm <input file>\n");
+int main(int argc, char* argv[]){
+  if(argc != 2) {
+    printf("Usage:  ./lex <input file>");
     return 1;
   }
 
-  FILE *inputFile = fopen(argv[1], "rb");
-
-  if(!inputFile)
-  {
-    printf("\nError: cannot open %s\n", argv[1]);
+  FILE* fp = fopen(argv[1], "rb");
+  if(fp == NULL){
+    printf("Error:  unable to open input file 'PATH' ", argv[1]);
     return 1;
   }
 
+  char input[10000];
 
+  //scan fp all the way to the end of the file and add the characters to an array
 
-  fclose(inputFile);
+  int ch;
+  int line = 1;
+  int column = 1;
+
+  int n = 0;
+  while((ch = fgetc(fp)) != EOF && n < 9999)
+  {
+    if(ch == ' ' || ch == '\t' || ch == '\r') {
+        column++;
+        continue;
+    }
+
+    if(ch == '\n') {
+        line++;
+        column = 1;
+        continue;
+    }
+
+    column++;
+    input[n++] = ch;
+  }
+  input[n] = '\0'; 
+
+  printf("Source Program:\n\n");
+  for(int i = 0; i < n; i++) {
+    printf("%c", input);
+  }
+
+  printResults();
+
+  fclose(fp);
+
+  writeTokens();
+  writeNames();
+
   return 0;
 }
