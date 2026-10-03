@@ -98,6 +98,18 @@ static const Table keywords[] =
 };
 const tableSize = 17;
 
+typedef struct {
+    char lexeme[100];
+    int token;
+    int index;
+} Token;
+
+typedef struct {
+    char name[100];
+    int line;
+    int column;
+} Name;
+
 Token tokens[10000];
 Name names[10000];
 
@@ -115,6 +127,18 @@ static void addToken(char lexeme[], int token, int index)
 
 /* int checkKeyword(char word[])
 {
+=======
+static void addToken(char lexeme[], int token, int index) {
+    strcpy(tokens[tokenCount].lexeme, lexeme);
+    tokens[tokenCount].token = token;
+    tokens[tokenCount].index = index;
+
+    tokenCount++;
+}
+
+
+int checkKeyword(char word[]) {
+>>>>>>> f526e243750b7034ba2a1b575d510d230805d6f6
     if (strcmp(word, "begin") == 0) return 20;
     if (strcmp(word, "end") == 0) return 21;
     if (strcmp(word, "if") == 0) return 22;
@@ -134,6 +158,7 @@ static void addToken(char lexeme[], int token, int index)
     if (strcmp(word, "else") == 0) return 36;
 
     return 0;
+<<<<<<< HEAD
 
   for(int i = 0; i < 17; i++)
   {
@@ -158,10 +183,8 @@ int getCode(Struct table, char* w)
   }
 }
 
-static void printError(int errorNum, int lineNum, int col)
-{
-    switch(errorNum)
-  {
+static void printError(int errorNum, int lineNum, int col) {
+    switch(errorNum){
         case 1:
             printf("Error: %d at line %d, column %d: invalid character ’c’, with the character in place of c. A printable ASCII character that is not part of this language: ##, $, @, ?, _, ’, ‘, a bracket, a brace, a backslash.\n");
             break;
@@ -208,21 +231,17 @@ static void printError(int errorNum, int lineNum, int col)
     }
 }
 
-void printResults()
-{
+void printResults() {
     printf("\nLexeme Table:\n\nlexeme \t\ttoken");
 
-    for(int i = 0; i < tokenCount; i++)
-  {
+    for(int i = 0; i < tokenCount; i++) {
         printf("%s\t%d\n", tokens[i].lexeme, tokens[i].token);
 
-        if(tokens[i].token == 1)
-    {
+        if(tokens[i].token == 1) {
             printf(" %d", tokens[i].index);
         }
 
-        else if(tokens[i].token == 2)
-    {
+        else if(tokens[i].token == 2) {
             printf(" %s", tokens[i].lexeme);
         }
     }
@@ -234,9 +253,7 @@ void printResults()
     }
 
     printf("\n\nToken List:\n\n");
-
-    for(int i = 0; i < tokenCount; i++) 
-  {
+    for(int i = 0; i < tokenCount; i++) {
         printf("%d", tokens[i].token);
     }
 }
@@ -276,7 +293,6 @@ void writeNames() {
     fclose(fp);
 }
 
-
 int main(int argc, char* argv[]) 
 {
   if(argc != 2)
@@ -286,7 +302,7 @@ int main(int argc, char* argv[])
   }
 
   FILE* fp = fopen(argv[1], "rb");
-  if(fp == NULL) 
+  if(fp == NULL)
   {
     printf("Error:  unable to open input file 'PATH' ", argv[1]);
     return 1;
@@ -305,6 +321,20 @@ int main(int argc, char* argv[])
   {
     /* We dont want to evaluate spaces while we store the input.
      * if(ch == ' ' || ch == '\t' || ch == '\r') {
+=======
+
+  //scan fp all the way to the end of the file and add the characters to an array
+
+  char input[10000];
+  int ch;
+  int line = 1;
+  int column = 1;
+  int n = 0;
+
+  while((ch = fgetc(fp)) != EOF && n < 9999)
+  {
+    if(ch == ' ' || ch == '\t' || ch == '\r') {
+>>>>>>> f526e243750b7034ba2a1b575d510d230805d6f6
         column++;
         continue;
     }
@@ -315,6 +345,7 @@ int main(int argc, char* argv[])
         continue;
     }
 
+<<<<<<< HEAD
     column++;*/
 
     //add every bite to the stored array then evaluate
@@ -397,18 +428,17 @@ int main(int argc, char* argv[])
     }
   }
 }
-
   printf("Source Program:\n\n");
   for(int i = 0; i < n; i++) {
-    printf("%c", input);
+    printf("%c", input[i]);
   }
+  printf("\n");
 
   printResults();
-
-  fclose(fp);
 
   writeTokens();
   writeNames();
 
+  fclose(fp);
   return 0;
 }
