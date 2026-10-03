@@ -125,20 +125,8 @@ static void addToken(char lexeme[], int token, int index)
   tokenCount++;
 }
 
-/* int checkKeyword(char word[])
-{
-=======
-static void addToken(char lexeme[], int token, int index) {
-    strcpy(tokens[tokenCount].lexeme, lexeme);
-    tokens[tokenCount].token = token;
-    tokens[tokenCount].index = index;
-
-    tokenCount++;
-}
-
-
+/*
 int checkKeyword(char word[]) {
->>>>>>> f526e243750b7034ba2a1b575d510d230805d6f6
     if (strcmp(word, "begin") == 0) return 20;
     if (strcmp(word, "end") == 0) return 21;
     if (strcmp(word, "if") == 0) return 22;
@@ -158,7 +146,6 @@ int checkKeyword(char word[]) {
     if (strcmp(word, "else") == 0) return 36;
 
     return 0;
-<<<<<<< HEAD
 
   for(int i = 0; i < 17; i++)
   {
@@ -320,34 +307,19 @@ int main(int argc, char* argv[])
   while((ch = fgetc(fp)) != EOF && n < 9999)
   {
     /* We dont want to evaluate spaces while we store the input.
-     * if(ch == ' ' || ch == '\t' || ch == '\r') {
-=======
+     if(ch == ' ' || ch == '\t' || ch == '\r') {
 
   //scan fp all the way to the end of the file and add the characters to an array
-
-  char input[10000];
-  int ch;
-  int line = 1;
-  int column = 1;
-  int n = 0;
-
-  while((ch = fgetc(fp)) != EOF && n < 9999)
-  {
     if(ch == ' ' || ch == '\t' || ch == '\r') {
->>>>>>> f526e243750b7034ba2a1b575d510d230805d6f6
         column++;
         continue;
     }
-
     if(ch == '\n') {
         line++;
         column = 1;
         continue;
     }
-
-<<<<<<< HEAD
     column++;*/
-
     //add every bite to the stored array then evaluate
     input[n++] = ch;
   }
