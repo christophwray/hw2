@@ -233,6 +233,11 @@ void printResults() {
     }
 }
 
+void errorHelper(const char* lexeme, int errorNum, int row, int lineNum)
+{
+
+}
+
 void writeTokens() {
     FILE* fp = fopen("tokens.txt", "w");
 
@@ -340,7 +345,7 @@ int main(int argc, char* argv[])
       { //not a keyword, number, or symbol.
         code = 1 /*identifier code*/ ;
       }
-      addToken(buff, code, 0)
+      addToken(buff, code, 0);
     }
 
     else if(isdigit(input[i]))
@@ -350,14 +355,14 @@ int main(int argc, char* argv[])
       {
         buff[len] = input[i];
         len++, i++;
-        if(len > 6)
-        {
-          printf("Error: 3 ");
-          return 1;
-        }
       }
       buff[len] = '\0';
-      addToken(buff, 2, 0)
+      if(len > 6)
+      {
+        printError(3, //row, col//);
+        return 1;
+      }
+      addToken(buff, 2, 0);
     }
 
     //build symbol
@@ -383,8 +388,8 @@ int main(int argc, char* argv[])
       if(code == -1)
       {
         printResults();
-        printf("Error:  Invalid symbol\n");
-        exit(1)
+        printError(1,);
+        exit(1);
       }
       addToken(buff, code, 0);
     }
