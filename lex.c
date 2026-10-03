@@ -201,20 +201,21 @@ int main(int argc, char* argv[]){
   }
 
   FILE* fp = fopen(argv[1], "rb");
+
   if(fp == NULL){
     printf("Error:  unable to open input file 'PATH' ", argv[1]);
     return 1;
   }
 
-  char input[10000];
 
   //scan fp all the way to the end of the file and add the characters to an array
 
+  char input[10000];
   int ch;
   int line = 1;
   int column = 1;
-
   int n = 0;
+
   while((ch = fgetc(fp)) != EOF && n < 9999)
   {
     if(ch == ' ' || ch == '\t' || ch == '\r') {
@@ -228,22 +229,21 @@ int main(int argc, char* argv[]){
         continue;
     }
 
-    column++;
     input[n++] = ch;
   }
   input[n] = '\0'; 
 
   printf("Source Program:\n\n");
   for(int i = 0; i < n; i++) {
-    printf("%c", input);
+    printf("%c", input[i]);
   }
+  printf("\n");
 
   printResults();
-
-  fclose(fp);
 
   writeTokens();
   writeNames();
 
+  fclose(fp);
   return 0;
 }
