@@ -96,19 +96,7 @@ static const Table keywords[] =
   {"read", "readsym", 35},
   {"else", "elsesym", 36}
 };
-const tableSize = 17;
-
-typedef struct {
-    char lexeme[100];
-    int token;
-    int index;
-} Token;
-
-typedef struct {
-    char name[100];
-    int line;
-    int column;
-} Name;
+const int tableSize = 17;
 
 Token tokens[10000];
 Name names[10000];
@@ -158,7 +146,7 @@ int checkKeyword(char word[]) {
 }
 */
 
-int getCode(Struct table, char* w)
+int getCode(const Table *table, char* w)
 {
   for(int i = 0; i < tableSize; i++)
   {
@@ -166,8 +154,8 @@ int getCode(Struct table, char* w)
     {
       return table[i].code;
     }
-    return -1; //no match
   }
+  return -1; //no match
 }
 
 static void printError(int errorNum, int lineNum, int col) {
@@ -339,7 +327,7 @@ int main(int argc, char* argv[])
 
     if(isalpha(input[i]))
     {
-      while(isalnum(i))
+      while(isalnum(input[i]))
       {
         //build word
         buff[len] = input[i];
@@ -352,7 +340,7 @@ int main(int argc, char* argv[])
       { //not a keyword, number, or symbol.
         code = 1 /*identifier code*/ ;
       }
-      printf("%s\t%d\n", buff, code);
+      addToken(buff, code, 0)
     }
 
     else if(isdigit(input[i]))
@@ -369,8 +357,8 @@ int main(int argc, char* argv[])
         }
       }
       buff[len] = '\0';
-      }
-      printf("%d", buff, 2 /*num code*/ );
+      addToken(buff, 2, 0)
+    }
 
     //build symbol
     else
@@ -394,12 +382,13 @@ int main(int argc, char* argv[])
       int code = getCode(symbols, buff);
       if(code == -1)
       {
-        printf("Error:  Invalid symbol");
+        printResults();
+        printf("Error:  Invalid symbol\n");
+        exit(1)
       }
-      printf(buff, code);
+      addToken(buff, code, 0);
     }
   }
-}
   printf("Source Program:\n\n");
   for(int i = 0; i < n; i++) {
     printf("%c", input[i]);
