@@ -208,7 +208,6 @@ static void printError(int errorNum, int lineNum, int col) {
 
 void printResults() {
     printf("\nLexeme Table:\n\nlexeme \t\ttoken\n");
-
     for(int i = 0; i < tokenCount; i++) {
         printf("%s\t%d\n", tokens[i].lexeme, tokens[i].token);
 
@@ -224,12 +223,24 @@ void printResults() {
     printf("\nName Table:\n\nindex  name\t\tline\tcolumn\n");
 
     for(int i = 0; i < nameCount; i++) {
-        printf("%d\t%s\t\t%d\t%d", i, names[i].name, names[i].line, names[i].column);
+        printf("%d\t%s\t\t%d\t%d\n", i, names[i].name, names[i].line, names[i].column);
     }
 
     printf("\n\nToken List:\n\n");
     for(int i = 0; i < tokenCount; i++) {
-        printf("%d", tokens[i].token);
+      if(i > 0) {
+        printf(" ");
+      }
+      
+      printf("%d", tokens[i].token);
+
+      if(tokens[i].token == 1) {
+        printf(" %d", tokens[i].index);
+      }
+
+      else if(tokens[i].token == 2) {
+        printf(" %s", tokens[i].lexeme);
+      }
     }
     printf("\n");
 }
@@ -336,25 +347,28 @@ int main(int argc, char* argv[])
     }
 
     if(input[i] == '\r') {
-        line++;
-        column = 1;
-        continue;
-    }
-
-    if(input[i] == '\n') {
-        line++;
-        column = 1;
         i++;
         continue;
     }
 
+    if(input[i] == '\n') {
+        i++;
+        line++;
+        column = 1;
+        continue;
+    }
+
+    int startLine = line;
+    int startColumn = column;
+    
     if(isLetter(input[i]))
     {
-      int startLine = line;
-      int startColumn = column;
-
-      while(isLetter(input[i]))
+      while(isLetter(input[i]) || isNum(input[i]))
       {
+        if(len > 12) {
+          printError(2, startLine, startColumn);
+          return 1;
+        }
         //build word
         buff[len] = input[i];
         len++, i++;
@@ -362,24 +376,24 @@ int main(int argc, char* argv[])
       buff[len] = '\0';
       int code = getCode(keywords, buff);
 
-      if(code == -1)
-      { //not a keyword, number, or symbol.
-        code = 1 /*identifier code*/ ;
+      if(code != -1) { //not a keyword, number, or symbol.
+        addToken(buff, code, 0);
       }
 
-      int index = findName(buff);
-      
-      if(index == -1) {
-        index = nameCount;
+      else {
+        int index = findName(buff);
 
+        if(index == -1) {
+          index = nameCount;
+          
         strcpy(names[nameCount].name, buff);
         names[nameCount].line = startLine;
         names[nameCount].column = startColumn;
 
         nameCount++;
+        }
+        addToken(buff, 1, index);
       }
-
-      addToken(buff, code, index);
     }
 
     else if(isNum(input[i]))
@@ -424,21 +438,24 @@ int main(int argc, char* argv[])
       {
         printResults();
         printError(1,line, column);
-        exit(1);
+        return 1;
+        //exit(1);
       }
       addToken(buff, code, 0);
     }
   }
+
+  if(tokenCount == 0) {
+    printResults();
+    printError(11, 1, 1);
+    return 1;
+  }
+
   printf("Source Program:\n\n");
   for(int i = 0; i < n; i++) {
     printf("%c", input[i]);
   }
   printf("\n");
-
-  if(tokenCount == 0) {
-    printResults();
-    printError(11, 1, 1);
-  }
 
   printResults();
 
