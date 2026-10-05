@@ -158,66 +158,59 @@ int getCode(const Table *table, char* w)
   return -1; //no match
 }
 
-static void printError(int errorNum, int lineNum, int col) {
+static void printError(int errorNum, int lineNum, int col, const char *lexeme) {
     switch(errorNum){
         case 1:
-            printf("Error: %d at line %d, column %d: invalid character ’c’, with the character in place of c. A printable ASCII character that is not part of this language: ##, $, @, ?, _, ’, ‘, a bracket, a brace, a backslash.\n", errorNum, lineNum, col);
+            printf("\nError 1 at line %d, column %d: invalid character '%s'\n", lineNum, col, lexeme);
             break;
 
         case 2: 
-            printf("Error: %d at line %d, column %d: identifier too long ’lexeme’, with the whole run in place of lexeme. A letter-led run longer than twelve characters.\n", errorNum, lineNum, col);
+            printf("\nError 2 at line %d, column %d: identifier too long '%s'\n", lineNum, col, lexeme);
             break;
 
         case 3:
-            printf("Error: %d at line %d, column %d: number too long 'lexeme'. A digit run longer than six digits.\n", errorNum, lineNum, col);
+            printf("Error 3 at line %d, column %d: number too long '%s'\n", lineNum, col, lexeme);
             break;
 
         case 4:
-            printf("Error: %d at line %d, column %d: ':' must be followed by '='. A colon that is not part of :=.\n", errorNum, lineNum, col);
+            printf("Error 4 at line %d, column %d: ':' must be followed by '='\n", lineNum, col);
             break;
 
         case 5:
-            printf("Error: %d at line %d, column %d: ’!’ must be followed by ’=’. An exclamation mark that is not part of !=.\n", errorNum, lineNum, col);
+            printf("Error 5 at line %d, column %d: '!' must be followed by '='\n", lineNum, col);
             break;
 
         case 6:
-            printf("Error: %d at line %d, column %d: number followed by a letter ’lexeme’, with the whole alphanumeric", errorNum, lineNum, col);
+            printf("Error 6 at line %d, column %d: number followed by a letter '%s'\n", lineNum, col, lexeme);
             break;
 
         case 7:
-            printf("Error: %d at line %d, column %d: comment is not closed before end of file. Reported at the position of the /* that opened it.\n", errorNum, lineNum, col);
+            printf("Error 7 at line %d, column %d: comment is not closed before end of file\n", lineNum, col);
             break;
 
         case 8: 
-            printf("Error: %d at line %d, column %d: ’*/’ without a matching ’/*’.\n", errorNum, lineNum, col);
+            printf("\nError 8 at line %d, column %d: '*/' without a matching '/*'\n", lineNum, col);
             break;
 
         case 9: 
-            printf("Error: %d at line %d, column %d: ’/*’ inside a comment.\n", errorNum, lineNum, col);
+            printf("\nError 9 at line %d, column %d: '/*' inside a comment\n", lineNum, col);
             break;
 
         case 10:
-            printf("Error: %d at line %d, column %d: byte 0xHH is not part of this language, with two upper-case hexadecimal digits in place of HH. Any byte outside the printable ASCII range 0x20 to 0x7E that is not one of the four whitespace characters.", errorNum, lineNum, col);
+            printf("Error 10 at line %d, column %d: byte 0x%s is not part of this language\n", lineNum, col, lexeme);
             break;
 
         case 11:
-            printf("Error: %d at line %d, column %d: no tokens in the source program. Reported at line 1, column 1.", errorNum, lineNum, col);
+            printf("\nError 11 at line %d, column %d: no tokens in the source program\n", lineNum, col);
             break;
     }
 }
 
 void printResults() {
     printf("\nLexeme Table:\n\nlexeme \t\ttoken\n");
+
     for(int i = 0; i < tokenCount; i++) {
         printf("%s\t%d\n", tokens[i].lexeme, tokens[i].token);
-
-        if(tokens[i].token == 1) {
-            printf(" %d", tokens[i].index);
-        }
-
-        else if(tokens[i].token == 2) {
-            printf(" %s", tokens[i].lexeme);
-        }
     }
 
     printf("\nName Table:\n\nindex  name\t\tline\tcolumn\n");
@@ -227,6 +220,7 @@ void printResults() {
     }
 
     printf("\n\nToken List:\n\n");
+
     for(int i = 0; i < tokenCount; i++) {
       if(i > 0) {
         printf(" ");
@@ -318,27 +312,51 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  char input[10000];
+  
 
   //scan fp all the way to the end of the file and add the characters to an array
 
-  int ch;
-  int line = 1;
-  int column = 1;
-
+  char *input = NULL;
   int n = 0;
-  while((ch = fgetc(fp)) != EOF && n < 9999)
+  int max = 100;
+
+  int ch;
+
+  input = malloc(max);
+
+  while((ch = fgetc(fp)) != EOF)
   {
+    if(n >= max) {
+      max = max * 2;
+      input = realloc(input, max);
+    }
     //add every bite to the stored array then evaluate
     input[n++] = ch;
   }
-  input[n] = '\0';
+  //input[n] = '\0';
 
+  printf("Source Program:\n\n");
+
+  for(int i = 0; i < n; i++) {
+    printf("%c", input[i]);
+  }
+  
+  if(n == 0 || input[n - 1] != '\n') {
+    printf("\n");
+  }
+
+  printf("\n");
+
+  int line = 1;
+  int column = 1;
   int i = 0;
+
   while(i < n)
   {
     char buff[64];
     int len = 0;
+    int startLine = line;
+    int startColumn = column;
 
     if(input[i] == ' ' || input[i] == '\t') {
         i++;
@@ -358,22 +376,26 @@ int main(int argc, char* argv[])
         continue;
     }
 
-    int startLine = line;
-    int startColumn = column;
     
     if(isLetter(input[i]))
     {
-      while(isLetter(input[i]) || isNum(input[i]))
+      while(i < n && (isLetter(input[i]) || isNum(input[i])))
       {
-        if(len > 12) {
-          printError(2, startLine, startColumn);
-          return 1;
-        }
         //build word
         buff[len] = input[i];
-        len++, i++;
+        len++, i++, column++;
       }
       buff[len] = '\0';
+
+      
+      if(len > 12) {
+        printResults();
+        printError(2, startLine, startColumn, buff);
+        writeTokens();
+        writeNames();
+        return 1;
+      }
+
       int code = getCode(keywords, buff);
 
       if(code != -1) { //not a keyword, number, or symbol.
@@ -386,11 +408,11 @@ int main(int argc, char* argv[])
         if(index == -1) {
           index = nameCount;
           
-        strcpy(names[nameCount].name, buff);
-        names[nameCount].line = startLine;
-        names[nameCount].column = startColumn;
+          strcpy(names[nameCount].name, buff);
+          names[nameCount].line = startLine;
+          names[nameCount].column = startColumn;
 
-        nameCount++;
+          nameCount++;
         }
         addToken(buff, 1, index);
       }
@@ -399,36 +421,156 @@ int main(int argc, char* argv[])
     else if(isNum(input[i]))
     {
       //build number
-      while(isNum(input[i]))
+      while(i < n && (isNum(input[i]) || isLetter(input[i])))
       {
         buff[len] = input[i];
-        len++, i++;
+        len++, i++, column++;
       }
+
       buff[len] = '\0';
+
+      int hasLetter = 0;
+
+      for(int i = 0; i < len; i++) {
+        if(isLetter(buff[i])) {
+          hasLetter = 1;
+          break;
+        }
+      }
+
+      if(hasLetter) {
+        printResults();
+        printError(6, startLine, startColumn, buff);
+        writeTokens();
+        writeNames();
+        return 1;
+      }
+      
       if(len > 6)
       {
-        printError(3, line, column);//(row, col);
+        printResults();
+        printError(3, startLine, startColumn, buff);//(row, col);
+        writeTokens();
+        writeNames();
         return 1;
       }
       
       addToken(buff, 2, 0);
     }
 
+    else if(input[i] == '/') { //check for comment
+      if (i + 1 < n && input[i + 1] == '*') {
+        int commentLine = line;
+        int commentColumn = column;
+    
+        i += 2; //Skip the opening comment /*
+        column += 2;
+
+        int commentClosed = 0;
+
+        while(i < n) { 
+          if(input[i] == '/' && i + 1 < n && input[i + 1] == '*') { //look for another comment inside the current comment
+            printResults();
+            printError(9, line, column, NULL);
+            writeTokens();
+            writeNames();
+            return 1;
+          }
+
+          if(input[i] == '*' && i + 1 < n && input[i + 1] == '/') { //look for closing comment sign
+            i += 2;
+            column += 2;
+            commentClosed = 1;
+            break;
+          }
+
+          if(input[i] == '\n') {
+            i++;
+            line++;
+            column = 1;
+          }
+
+          else if(input[i] == '\r') {
+            i++;
+          }
+
+          else {
+            i++;
+            column++;
+          }
+        }
+        if(!commentClosed) {
+            printResults();
+            printError(7, commentLine, commentColumn, NULL);
+            writeTokens();
+            writeNames();
+            return 1;
+          }
+        continue;
+      }
+      else {
+        addToken("/", 6, 0);
+        i++;
+        column++;
+        continue;
+      }
+    }
+
     //build symbol
     else
     {
+      if(input[i] == '*' && i + 1 < n && input[i + 1] == '/') { //check for closing comment without an open comment
+        printResults();
+        printError(8, startLine, startColumn, NULL);
+        writeTokens();
+        writeNames();
+        return 1;
+      }
+
       buff[len++] = input[i++];
+      column++;
+
       switch (buff[0])
       {
         case '!':
+          if(i < n && input[i] == '=') {
+            addToken("!=", 8, 0);
+            i++;
+            column ++;
+          }
+
+          else {
+            printResults();
+            printError(5, startLine, startColumn, NULL);
+            writeTokens();
+            writeNames();
+            return 1;
+          }
+          break;
+        
+        case ':':
+          if(i < n && input[i] == '=') {
+            addToken(":=", 19, 0);
+            i++;
+            column ++;
+          }
+
+          else {
+            printResults();
+            printError(4, line, column, NULL);
+            writeTokens();
+            writeNames();
+            return 1;
+          }
+          break;
+
         case '=':
         case '<':
         case'>':
-        case':':
           if (input[i] == '=')
           {
             buff[len] = input[i];
-            len++, i++;
+            len++, i++, column++;
           }
         break;
       }
@@ -437,9 +579,10 @@ int main(int argc, char* argv[])
       if(code == -1)
       {
         printResults();
-        printError(1,line, column);
+        printError(1, startLine, startColumn, buff);
+        writeTokens();
+        writeNames();
         return 1;
-        //exit(1);
       }
       addToken(buff, code, 0);
     }
@@ -447,20 +590,19 @@ int main(int argc, char* argv[])
 
   if(tokenCount == 0) {
     printResults();
-    printError(11, 1, 1);
+    printError(11, 1, 1, NULL);
+    writeTokens();
+    writeNames();
     return 1;
   }
 
-  printf("Source Program:\n\n");
-  for(int i = 0; i < n; i++) {
-    printf("%c", input[i]);
-  }
-  printf("\n");
 
   printResults();
 
   writeTokens();
   writeNames();
+
+  free(input);
 
   fclose(fp);
   return 0;
