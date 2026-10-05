@@ -536,7 +536,7 @@ int main(int argc, char* argv[])
           if(i < n && input[i] == '=') {
             addToken("!=", 8, 0);
             i++;
-            column ++;
+            column++;
           }
 
           else {
@@ -552,7 +552,7 @@ int main(int argc, char* argv[])
           if(i < n && input[i] == '=') {
             addToken(":=", 19, 0);
             i++;
-            column ++;
+            column++;
           }
 
           else {
